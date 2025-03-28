@@ -2,8 +2,6 @@ import os
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import google.generativeai as genai
-from langchain.agents import Tool
-from langchain.prompts import PromptTemplate
 from pydantic import BaseModel
 import requests
 import json
