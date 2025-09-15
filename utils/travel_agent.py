@@ -57,10 +57,10 @@ class TravelAgent:
 
         
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-1.5-flash",
             generation_config=generation_config,
             safety_settings=safety_settings
-        )
+)
         
     def _create_initial_prompt(self) -> str:
         return """You are an expert travel agent AI assistant. Your goal is to help users plan 
