@@ -158,9 +158,9 @@ class TravelAgent:
         morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
 considering the following preferences:
 - Walking tolerance: {preferences.walking_tolerance}
-- Dietary preferences: {', '.join(preferences.dietary_preferences)}
-- Available attractions: {', '.join(attractions[:3])}
-- Breakfast options: {', '.join(restaurants[:2])}"""
+- Dietary preferences: {', '.join(map(str, preferences.dietary_preferences))}
+- Available attractions: {', '.join(map(str, attractions[:3]))}
+- Breakfast options: {', '.join(map(str, restaurants[:2]))}"
         
         afternoon_prompt = """Create an afternoon schedule that includes:
 - Lunch recommendations
@@ -202,15 +202,16 @@ Trip Details:
 - Budget: {preferences.budget}
 - Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
 - Purpose: {preferences.purpose}
-- Interests: {', '.join(preferences.interests) if preferences.interests else 'Various activities'}
-- Dietary Preferences: {', '.join(preferences.dietary_preferences) if preferences.dietary_preferences else 'No restrictions'}
+- Interests: {', '.join(map(str, preferences.interests)) if preferences.interests else 'Various activities'}
+- Dietary Preferences: {', '.join(map(str, preferences.dietary_preferences)) if preferences.dietary_preferences else 'No restrictions'}
 - Mobility: {preferences.mobility_requirements} (Can walk for {preferences.walking_tolerance})
 - Accommodation: {preferences.accommodation_type}
 
-Available Attractions: {', '.join(destination_info['attractions'])}
-Hidden Gems: {', '.join(destination_info['hidden_gems'])}
-Restaurants: {', '.join(destination_info['restaurants'])}
-Events: {', '.join(destination_info['events'])}
+
+Available Attractions: {', '.join(map(str, destination_info.get('attractions', [])))}
+Hidden Gems: {', '.join(map(str, destination_info.get('hidden_gems', [])))}
+Restaurants: {', '.join(map(str, destination_info.get('restaurants', [])))}
+Events: {', '.join(map(str, destination_info.get('events', [])))}
 
 Please create a day-by-day itinerary that:
 1. Starts each day with a breakfast recommendation
