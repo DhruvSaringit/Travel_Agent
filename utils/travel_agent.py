@@ -175,11 +175,11 @@ def _create_daily_schedule(self, preferences: TravelPreferences, day_num: int,
 
         
         
-        morning = self.model.generate_content(morning_prompt).text.strip()
-        afternoon = self.model.generate_content(afternoon_prompt).text.strip()
-        evening = self.model.generate_content(evening_prompt).text.strip()
+    morning = self.model.generate_content(morning_prompt).text.strip()
+    afternoon = self.model.generate_content(afternoon_prompt).text.strip()
+    evening = self.model.generate_content(evening_prompt).text.strip()
         
-        return f"""Day {day_num}:
+    return f"""Day {day_num}:
 
 Morning:
 {morning}
