@@ -155,12 +155,20 @@ class TravelAgent:
     def _create_daily_schedule(self, preferences: TravelPreferences, day_num: int, 
                              attractions: List[str], restaurants: List[str]) -> str:
         """Create a structured schedule for a single day."""
-        morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
+morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
 considering the following preferences:
 - Walking tolerance: {preferences.walking_tolerance}
 - Dietary preferences: {', '.join(preferences.dietary_preferences)}
 - Available attractions: {', '.join(attractions[:3])}
 - Breakfast options: {', '.join(restaurants[:2])}
+"""
+        
+afternoon_prompt = """Create an afternoon schedule that includes:
+- Lunch recommendations
+- Main attractions or activities
+- Rest periods
+- Alternative indoor options in case of bad weather"""
+
 
         
         afternoon_prompt = """Create an afternoon schedule that includes:
@@ -255,11 +263,11 @@ Practical Information:
             return f"An error occurred while generating the itinerary: {str(e)}"
 
     def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
-        """Refine the itinerary based on user feedback."""
-       refinement_prompt = f"""
+    """Refine the itinerary based on user feedback."""
+    refinement_prompt = f"""
         Based on the user's feedback: {feedback}
         Please refine the suggestions for their trip to {preferences.destination}.
-       
+        
         Consider:
         1. Original preferences
         2. New feedback
@@ -274,9 +282,9 @@ Practical Information:
         3. Transportation options
         4. Alternative activities
         """
-        
-        response = self.model.generate_content(refinement_prompt)
-        return response.text if response.text else "Unable to refine itinerary. Please try again."
+            
+    response = self.model.generate_content(refinement_prompt)
+    return response.text if response.text else "Unable to refine itinerary. Please try again."
 
     def gather_preferences(self, user_input: str) -> Dict:
         """Gather and refine user preferences through conversation."""
