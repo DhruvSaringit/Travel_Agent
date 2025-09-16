@@ -189,15 +189,14 @@ Afternoon:
 
 Evening:
 {evening}"""
-def generate_itinerary(self, preferences: TravelPreferences) -> str:
+def generate_itinerary(self, preferences: TravelPreferences, feedback: str = "") -> str:
     """Generate a complete, personalized travel itinerary."""
     try:
         # Gather destination information
-        destination_info = self._get_destination_info(preferences.destination)
-            
+        destination_info = self.get_destination_info(preferences.destination)
+
         # Create the initial prompt for the itinerary
         itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
-
 Trip Details:
 - Budget: {preferences.budget}
 - Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
@@ -206,7 +205,6 @@ Trip Details:
 - Dietary Preferences: {', '.join(preferences.dietary_preferences) if preferences.dietary_preferences else 'No restrictions'}
 - Mobility: {preferences.mobility_requirements} (Can walk for {preferences.walking_tolerance})
 - Accommodation: {preferences.accommodation_type}
-
 
 Available Attractions: {', '.join(destination_info['attractions'])}
 Hidden Gems: {', '.join(destination_info['hidden_gems'])}
@@ -227,18 +225,16 @@ Please create a day-by-day itinerary that:
 
 Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
 
-            # Generate the itinerary
-            response = self.model.generate_content(itinerary_prompt)
-            if not response.text:
-                return "Unable to generate itinerary. Please try again."
+        # Generate the itinerary
+        response = self.model.generate_content(itinerary_prompt)
+        if not response.text:
+            return "Unable to generate itinerary. Please try again."
 
-            # Add header and practical information
-            full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
-
+        # Add header and practical information
+        full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
 Duration: {preferences.duration} days
 Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
 Budget: {preferences.budget}
-
 {response.text}
 
 Practical Information:
@@ -248,10 +244,10 @@ Practical Information:
 - Bookings: Make reservations in advance
 - Local Customs: Research and respect local traditions"""
 
-            return full_itinerary.strip()
+        return full_itinerary.strip()
 
-        except Exception as e:
-            return f"An error occurred while generating the itinerary: {str(e)}"
+    except Exception as e:
+        return f"An error occurred while generating the itinerary: {str(e)}"
 
 def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
     """Refine the itinerary based on user feedback."""
