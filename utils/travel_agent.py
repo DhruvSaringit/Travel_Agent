@@ -189,15 +189,14 @@ Afternoon:
 
 Evening:
 {evening}"""
-
-    def generate_itinerary(self, preferences: TravelPreferences) -> str:
-        """Generate a complete, personalized travel itinerary."""
-        try:
-            # Gather destination information
-            destination_info = self._get_destination_info(preferences.destination)
+def generate_itinerary(self, preferences: TravelPreferences) -> str:
+    """Generate a complete, personalized travel itinerary."""
+    try:
+        # Gather destination information
+        destination_info = self._get_destination_info(preferences.destination)
             
-            # Create the initial prompt for the itinerary
-            itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
+        # Create the initial prompt for the itinerary
+        itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
 
 Trip Details:
 - Budget: {preferences.budget}
