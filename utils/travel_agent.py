@@ -256,8 +256,10 @@ Practical Information:
 
     def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
         """Refine the itinerary based on user feedback."""
-        refinement_prompt = f"""Based on the user's feedback: "{feedback}"
+       refinement_prompt = f"""
+        Based on the user's feedback: {feedback}
         Please refine the suggestions for their trip to {preferences.destination}.
+       
         Consider:
         1. Original preferences
         2. New feedback
