@@ -151,131 +151,131 @@ class TravelAgent:
                     "Seasonal Activity"
                 ]
             }
-def _create_daily_schedule(self, preferences: TravelPreferences, day_num: int, 
-                             attractions: List[str], restaurants: List[str]) -> str:
-    """Create a structured schedule for a single day."""
-    morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
-    considering the following preferences:
-    - Walking tolerance: {preferences.walking_tolerance}
-    - Dietary preferences: {', '.join(preferences.dietary_preferences)}
-    - Available attractions: {', '.join(attractions[:3])}
-    - Breakfast options: {', '.join(restaurants[:2])}
-    """
-
-    afternoon_prompt = """Create an afternoon schedule that includes:
-    - Lunch recommendations
-    - Main attractions or activities
-    - Rest periods
-    - Alternative indoor options in case of bad weather"""
-
-    evening_prompt = """Plan an evening that includes:
-    - Dinner recommendations
-    - Evening activities or entertainment
-    - Transportation back to accommodation"""
-
-        
-        
-    morning = self.model.generate_content(morning_prompt).text.strip()
-    afternoon = self.model.generate_content(afternoon_prompt).text.strip()
-    evening = self.model.generate_content(evening_prompt).text.strip()
-        
-    return f"""Day {day_num}:
-
-Morning:
-{morning}
-
-Afternoon:
-{afternoon}
-
-Evening:
-{evening}"""
-def generate_itinerary(self, preferences: TravelPreferences, feedback: str = "") -> str:
-    """Generate a complete, personalized travel itinerary."""
-    try:
-        # Gather destination information
-        destination_info = self.get_destination_info(preferences.destination)
-
-        # Create the initial prompt for the itinerary
-        itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
-Trip Details:
-- Budget: {preferences.budget}
-- Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
-- Purpose: {preferences.purpose}
-- Interests: {', '.join(preferences.interests) if preferences.interests else 'Various activities'}
-- Dietary Preferences: {', '.join(preferences.dietary_preferences) if preferences.dietary_preferences else 'No restrictions'}
-- Mobility: {preferences.mobility_requirements} (Can walk for {preferences.walking_tolerance})
-- Accommodation: {preferences.accommodation_type}
-
-Available Attractions: {', '.join(destination_info['attractions'])}
-Hidden Gems: {', '.join(destination_info['hidden_gems'])}
-Restaurants: {', '.join(destination_info['restaurants'])}
-Events: {', '.join(destination_info['events'])}
-
-Please create a day-by-day itinerary that:
-1. Starts each day with a breakfast recommendation
-2. Groups nearby attractions together to minimize travel time
-3. Includes specific timing for each activity
-4. Suggests restaurants that match dietary preferences
-5. Incorporates rest periods and flexible time
-6. Provides transportation recommendations
-7. Includes estimated costs for activities
-8. Suggests indoor alternatives for bad weather
-9. Balances tourist attractions with hidden gems
-10. Considers walking tolerance and mobility needs
-
-Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
-
-        # Generate the itinerary
-        response = self.model.generate_content(itinerary_prompt)
-        if not response.text:
-            return "Unable to generate itinerary. Please try again."
-
-        # Add header and practical information
-        full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
-Duration: {preferences.duration} days
-Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
-Budget: {preferences.budget}
-{response.text}
-
-Practical Information:
-- Emergency Numbers: Save local emergency contacts
-- Weather: Check daily forecast
-- Transportation: Download local transit apps
-- Bookings: Make reservations in advance
-- Local Customs: Research and respect local traditions"""
-
-        return full_itinerary.strip()
-
-    except Exception as e:
-        return f"An error occurred while generating the itinerary: {str(e)}"
-
-def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
-    """Refine the itinerary based on user feedback."""
-    refinement_prompt = f"""
-    Based on the user's feedback: {feedback}
-    Please refine the suggestions for their trip to {preferences.destination}.
+    def _create_daily_schedule(self, preferences: TravelPreferences, day_num: int, 
+                                 attractions: List[str], restaurants: List[str]) -> str:
+        """Create a structured schedule for a single day."""
+        morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
+        considering the following preferences:
+        - Walking tolerance: {preferences.walking_tolerance}
+        - Dietary preferences: {', '.join(preferences.dietary_preferences)}
+        - Available attractions: {', '.join(attractions[:3])}
+        - Breakfast options: {', '.join(restaurants[:2])}
+        """
     
-    Consider:
-    1. Original preferences
-    2. New feedback
-    3. Alternative options
-    4. Local seasonal events
-    5. Current weather conditions
-    6. Special requirements
-
-    Provide specific adjustments to:
-    1. Activity timing
-    2. Restaurant selections
-    3. Transportation options
-    4. Alternative activities
-    """
+        afternoon_prompt = """Create an afternoon schedule that includes:
+        - Lunch recommendations
+        - Main attractions or activities
+        - Rest periods
+        - Alternative indoor options in case of bad weather"""
     
-    response = self.model.generate_content(refinement_prompt)
-    return response.text if response.text else "Unable to refine itinerary. Please try again."
-
+        evening_prompt = """Plan an evening that includes:
+        - Dinner recommendations
+        - Evening activities or entertainment
+        - Transportation back to accommodation"""
+    
             
-    response = self.model.generate_content(refinement_prompt)
-    return response.text if response.text else "Unable to refine itinerary. Please try again."
+            
+        morning = self.model.generate_content(morning_prompt).text.strip()
+        afternoon = self.model.generate_content(afternoon_prompt).text.strip()
+        evening = self.model.generate_content(evening_prompt).text.strip()
+            
+        return f"""Day {day_num}:
+    
+    Morning:
+    {morning}
+    
+    Afternoon:
+    {afternoon}
+    
+    Evening:
+    {evening}"""
+    def generate_itinerary(self, preferences: TravelPreferences, feedback: str = "") -> str:
+        """Generate a complete, personalized travel itinerary."""
+        try:
+            # Gather destination information
+            destination_info = self.get_destination_info(preferences.destination)
+    
+            # Create the initial prompt for the itinerary
+            itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
+    Trip Details:
+    - Budget: {preferences.budget}
+    - Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
+    - Purpose: {preferences.purpose}
+    - Interests: {', '.join(preferences.interests) if preferences.interests else 'Various activities'}
+    - Dietary Preferences: {', '.join(preferences.dietary_preferences) if preferences.dietary_preferences else 'No restrictions'}
+    - Mobility: {preferences.mobility_requirements} (Can walk for {preferences.walking_tolerance})
+    - Accommodation: {preferences.accommodation_type}
+    
+    Available Attractions: {', '.join(destination_info['attractions'])}
+    Hidden Gems: {', '.join(destination_info['hidden_gems'])}
+    Restaurants: {', '.join(destination_info['restaurants'])}
+    Events: {', '.join(destination_info['events'])}
+    
+    Please create a day-by-day itinerary that:
+    1. Starts each day with a breakfast recommendation
+    2. Groups nearby attractions together to minimize travel time
+    3. Includes specific timing for each activity
+    4. Suggests restaurants that match dietary preferences
+    5. Incorporates rest periods and flexible time
+    6. Provides transportation recommendations
+    7. Includes estimated costs for activities
+    8. Suggests indoor alternatives for bad weather
+    9. Balances tourist attractions with hidden gems
+    10. Considers walking tolerance and mobility needs
+    
+    Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
+    
+            # Generate the itinerary
+            response = self.model.generate_content(itinerary_prompt)
+            if not response.text:
+                return "Unable to generate itinerary. Please try again."
+    
+            # Add header and practical information
+            full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
+    Duration: {preferences.duration} days
+    Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
+    Budget: {preferences.budget}
+    {response.text}
+    
+    Practical Information:
+    - Emergency Numbers: Save local emergency contacts
+    - Weather: Check daily forecast
+    - Transportation: Download local transit apps
+    - Bookings: Make reservations in advance
+    - Local Customs: Research and respect local traditions"""
+    
+            return full_itinerary.strip()
+    
+        except Exception as e:
+            return f"An error occurred while generating the itinerary: {str(e)}"
+    
+    def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
+        """Refine the itinerary based on user feedback."""
+        refinement_prompt = f"""
+        Based on the user's feedback: {feedback}
+        Please refine the suggestions for their trip to {preferences.destination}.
+        
+        Consider:
+        1. Original preferences
+        2. New feedback
+        3. Alternative options
+        4. Local seasonal events
+        5. Current weather conditions
+        6. Special requirements
+    
+        Provide specific adjustments to:
+        1. Activity timing
+        2. Restaurant selections
+        3. Transportation options
+        4. Alternative activities
+        """
+        
+        response = self.model.generate_content(refinement_prompt)
+        return response.text if response.text else "Unable to refine itinerary. Please try again."
+    
+                
+        response = self.model.generate_content(refinement_prompt)
+        return response.text if response.text else "Unable to refine itinerary. Please try again."
 
     def gather_preferences(self, user_input: str) -> Dict:
         """Gather and refine user preferences through conversation."""
