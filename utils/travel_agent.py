@@ -120,7 +120,7 @@ class TravelAgent:
           
             info_text = response.text.strip()
             if info_text.startswith('```json'):
-                info_text = info_text[7:-3]  # Remove ```json and ``` markers
+                info_text = info_text[7:-3]  # Remove ```json
             destination_data = json.loads(info_text)
             return destination_data
         except:
@@ -157,9 +157,9 @@ class TravelAgent:
         morning_prompt = f"""Create a detailed morning schedule for day {day_num} in {preferences.destination},
         considering the following preferences:
         - Walking tolerance: {preferences.walking_tolerance}
-        - Dietary preferences: {', '.join(preferences.dietary_preferences)}
-        - Available attractions: {', '.join(attractions[:3])}
-        - Breakfast options: {', '.join(restaurants[:2])}
+        - Dietary preferences: {', '.join(preferences.dietary_preferences or ['No restrictions'])}
+        - Available attractions: {', '.join(attractions[:3] if attractions else ['No attractions'])}
+        - Breakfast options: {', '.join(restaurants[:2] if restaurants else ['No restaurants'])}
         """
     
         afternoon_prompt = """Create an afternoon schedule that includes:
