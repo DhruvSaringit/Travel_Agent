@@ -194,9 +194,25 @@ class TravelAgent:
         try:
             # Gather destination information
             destination_info = self._get_destination_info(preferences.destination)
+
+            # Convert any dicts to strings for safe joining
+            def stringify_list(items):
+                result = []
+                for item in items:
+                    if isinstance(item, dict):
+                        # Join key: value pairs into one string
+                        result.append("; ".join(f"{k}: {v}" for k, v in item.items()))
+                    else:
+                        result.append(str(item))
+                return result
     
-            # Create the initial prompt for the itinerary
-            itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
+            attractions = stringify_list(destination_info.get("attractions", []))
+            hidden_gems = stringify_list(destination_info.get("hidden_gems", []))
+            restaurants = stringify_list(destination_info.get("restaurants", []))
+            events = stringify_list(destination_info.get("events", []))
+
+        # Create the initial prompt for the itinerary
+        itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
     Trip Details:
     - Budget: {preferences.budget}
     - Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
@@ -205,12 +221,12 @@ class TravelAgent:
     - Dietary Preferences: {', '.join(preferences.dietary_preferences) if preferences.dietary_preferences else 'No restrictions'}
     - Mobility: {preferences.mobility_requirements} (Can walk for {preferences.walking_tolerance})
     - Accommodation: {preferences.accommodation_type}
-    
-    Available Attractions: {', '.join(destination_info['attractions'])}
-    Hidden Gems: {', '.join(destination_info['hidden_gems'])}
-    Restaurants: {', '.join(destination_info['restaurants'])}
-    Events: {', '.join(destination_info['events'])}
-    
+
+    Available Attractions: {', '.join(attractions)}
+    Hidden Gems: {', '.join(hidden_gems)}
+    Restaurants: {', '.join(restaurants)}
+    Events: {', '.join(events)}
+
     Please create a day-by-day itinerary that:
     1. Starts each day with a breakfast recommendation
     2. Groups nearby attractions together to minimize travel time
@@ -222,7 +238,7 @@ class TravelAgent:
     8. Suggests indoor alternatives for bad weather
     9. Balances tourist attractions with hidden gems
     10. Considers walking tolerance and mobility needs
-    
+
     Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
     
             # Generate the itinerary
@@ -236,18 +252,18 @@ class TravelAgent:
     Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
     Budget: {preferences.budget}
     {response.text}
-    
+
     Practical Information:
     - Emergency Numbers: Save local emergency contacts
     - Weather: Check daily forecast
     - Transportation: Download local transit apps
     - Bookings: Make reservations in advance
     - Local Customs: Research and respect local traditions"""
-    
-            return full_itinerary.strip()
-    
-        except Exception as e:
-            return f"An error occurred while generating the itinerary: {str(e)}"
+
+        return full_itinerary.strip()
+
+    except Exception as e:
+        return f"An error occurred while generating the itinerary: {str(e)}"""
     
     def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
         """Refine the itinerary based on user feedback."""
