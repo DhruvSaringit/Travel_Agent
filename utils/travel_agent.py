@@ -193,7 +193,7 @@ class TravelAgent:
         """Generate a complete, personalized travel itinerary."""
         try:
             # Gather destination information
-            destination_info = self.get_destination_info(preferences.destination)
+            destination_info = self._get_destination_info(preferences.destination)
     
             # Create the initial prompt for the itinerary
             itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
