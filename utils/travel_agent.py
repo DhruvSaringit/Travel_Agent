@@ -60,7 +60,7 @@ class TravelAgent:
             model_name="gemini-1.5-flash",
             generation_config=generation_config,
             safety_settings=safety_settings
-)
+        )
         
     def _create_initial_prompt(self) -> str:
         return """You are an expert travel agent AI assistant. Your goal is to help users plan 
@@ -205,14 +205,14 @@ class TravelAgent:
                     else:
                         result.append(str(item))
                 return result
-    
+
             attractions = stringify_list(destination_info.get("attractions", []))
             hidden_gems = stringify_list(destination_info.get("hidden_gems", []))
             restaurants = stringify_list(destination_info.get("restaurants", []))
             events = stringify_list(destination_info.get("events", []))
 
-        # Create the initial prompt for the itinerary
-        itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
+            # Create the initial prompt for the itinerary
+            itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
     Trip Details:
     - Budget: {preferences.budget}
     - Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
@@ -240,12 +240,12 @@ class TravelAgent:
     10. Considers walking tolerance and mobility needs
 
     Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
-    
+
             # Generate the itinerary
             response = self.model.generate_content(itinerary_prompt)
             if not response.text:
                 return "Unable to generate itinerary. Please try again."
-    
+
             # Add header and practical information
             full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
     Duration: {preferences.duration} days
@@ -260,10 +260,10 @@ class TravelAgent:
     - Bookings: Make reservations in advance
     - Local Customs: Research and respect local traditions"""
 
-        return full_itinerary.strip()
+            return full_itinerary.strip()
 
-    except Exception as e:
-        return f"An error occurred while generating the itinerary: {str(e)}"""
+        except Exception as e:
+            return f"An error occurred while generating the itinerary: {str(e)}"
     
     def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
         """Refine the itinerary based on user feedback."""
@@ -286,10 +286,6 @@ class TravelAgent:
         4. Alternative activities
         """
         
-        response = self.model.generate_content(refinement_prompt)
-        return response.text if response.text else "Unable to refine itinerary. Please try again."
-    
-                
         response = self.model.generate_content(refinement_prompt)
         return response.text if response.text else "Unable to refine itinerary. Please try again."
 
