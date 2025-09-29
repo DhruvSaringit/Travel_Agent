@@ -62,6 +62,55 @@ class TravelAgent:
 )
 
         
+    def _response_to_text(self, response) -> str:
+        """Extract plain text from Gemini responses that may contain multiple parts.
+
+        Handles candidates/content.parts structures and falls back gracefully.
+        """
+        try:
+            # Fast path if SDK still provides .text for simple responses
+            if hasattr(response, "text") and isinstance(response.text, str) and response.text:
+                return response.text
+
+            parts_text: List[str] = []
+
+            # Preferred: candidates[0].content.parts
+            candidates = getattr(response, "candidates", None) or []
+            if candidates:
+                content = getattr(candidates[0], "content", None)
+                parts = getattr(content, "parts", None) or []
+                for part in parts:
+                    text_val = getattr(part, "text", None)
+                    if isinstance(text_val, str):
+                        parts_text.append(text_val)
+                    elif isinstance(part, dict) and isinstance(part.get("text"), str):
+                        parts_text.append(part["text"])
+
+            # Fallback: response.parts
+            if not parts_text and hasattr(response, "parts"):
+                for part in getattr(response, "parts", []) or []:
+                    text_val = getattr(part, "text", None)
+                    if isinstance(text_val, str):
+                        parts_text.append(text_val)
+
+            return "".join(parts_text).strip()
+        except Exception:
+            return ""
+
+    def _strip_code_fences(self, text: str) -> str:
+        """Remove common markdown code fences like ```json ... ``` or ``` ... ```"""
+        t = text.strip()
+        if t.startswith("```"):
+            # remove first fence line
+            lines = t.splitlines()
+            # drop first line (``` or ```json)
+            lines = lines[1:]
+            # remove trailing ``` if present
+            if lines and lines[-1].strip().startswith("```"):
+                lines = lines[:-1]
+            t = "\n".join(lines).strip()
+        return t
+
     def _create_initial_prompt(self) -> str:
         return """You are an expert travel agent AI assistant. Your goal is to help users plan 
         their perfect trip by gathering necessary information and creating personalized itineraries.
@@ -117,11 +166,18 @@ class TravelAgent:
 
         try:
             response = self.model.generate_content(destination_prompt)
-          
-            info_text = response.text.strip()
-            if info_text.startswith('```json'):
-                info_text = info_text[7:-3]  
-            destination_data = json.loads(info_text)
+            info_text = self._response_to_text(response)
+            info_text = self._strip_code_fences(info_text)
+            # Be resilient: try to locate JSON braces if there is extra text
+            try:
+                destination_data = json.loads(info_text)
+            except Exception:
+                start = info_text.find('{')
+                end = info_text.rfind('}')
+                if start != -1 and end != -1 and end > start:
+                    destination_data = json.loads(info_text[start:end+1])
+                else:
+                    raise
             return destination_data
         except:
           
@@ -175,9 +231,9 @@ class TravelAgent:
     
             
             
-        morning = self.model.generate_content(morning_prompt).text.strip()
-        afternoon = self.model.generate_content(afternoon_prompt).text.strip()
-        evening = self.model.generate_content(evening_prompt).text.strip()
+        morning = self._response_to_text(self.model.generate_content(morning_prompt))
+        afternoon = self._response_to_text(self.model.generate_content(afternoon_prompt))
+        evening = self._response_to_text(self.model.generate_content(evening_prompt))
             
         return f"""Day {day_num}:
     
@@ -243,7 +299,8 @@ class TravelAgent:
 
             
             response = self.model.generate_content(itinerary_prompt)
-            if not response.text:
+            itinerary_text = self._response_to_text(response)
+            if not itinerary_text:
                 return "Unable to generate itinerary. Please try again."
 
             
@@ -251,7 +308,7 @@ class TravelAgent:
     Duration: {preferences.duration} days
     Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
     Budget: {preferences.budget}
-    {response.text}
+    {itinerary_text}
 
     Practical Information:
     - Emergency Numbers: Save local emergency contacts
@@ -287,22 +344,22 @@ class TravelAgent:
         """
         
         response = self.model.generate_content(refinement_prompt)
-        return response.text if response.text else "Unable to refine itinerary. Please try again."
+        text = self._response_to_text(response)
+        return text if text else "Unable to refine itinerary. Please try again."
 
     def gather_preferences(self, user_input: str) -> Dict:
         """Gather and refine user preferences through conversation."""
         initial_prompt = self._create_initial_prompt()
         response = self.model.generate_content(f"{initial_prompt}\n\nUser: {user_input}")
-        
-        
-        preferences = self._parse_preferences(response.text)
+        resp_text = self._response_to_text(response)
+        preferences = self._parse_preferences(resp_text)
         
        
         if preferences.get('needs_clarification'):
             clarification_prompt = self._create_clarification_prompt(preferences)
             clarification = self.model.generate_content(clarification_prompt)
-            
-            preferences.update(self._parse_preferences(clarification.text))
+            clarification_text = self._response_to_text(clarification)
+            preferences.update(self._parse_preferences(clarification_text))
         
         return preferences
 
@@ -336,7 +393,9 @@ class TravelAgent:
             """
             
             parse_response = self.model.generate_content(parse_prompt)
-            preferences = json.loads(parse_response.text)
+            parse_text = self._response_to_text(parse_response)
+            parse_text = self._strip_code_fences(parse_text)
+            preferences = json.loads(parse_text)
             return preferences
         except:
             
