@@ -3,11 +3,9 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from utils.travel_agent import TravelAgent, TravelPreferences
-
-# Load environment variables
 load_dotenv()
 
-# Initialize the travel agent
+
 api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     st.error("Please set up your GOOGLE_API_KEY in the .env file")
@@ -21,7 +19,7 @@ def main():
     st.title("AI Travel Planner 🌎✈️")
     st.write("Let me help you plan your perfect trip!")
 
-    # Initialize session state
+    
     if 'stage' not in st.session_state:
         st.session_state.stage = 'gather_info'
     if 'preferences' not in st.session_state:
@@ -29,7 +27,7 @@ def main():
     if 'itinerary' not in st.session_state:
         st.session_state.itinerary = None
 
-    # Gathering Information Stage
+    
     if st.session_state.stage == 'gather_info':
         with st.form("travel_preferences"):
             st.subheader("Essential Information")
@@ -100,7 +98,6 @@ def main():
                 st.session_state.stage = 'show_itinerary'
                 st.rerun()
 
-    # Show Itinerary Stage
     elif st.session_state.stage == 'show_itinerary':
         if st.session_state.itinerary is None:
             with st.spinner("Generating your personalized itinerary..."):
@@ -109,7 +106,7 @@ def main():
 
         st.subheader("Your Personalized Travel Itinerary")
         
-        # Display itinerary in a nice format
+        
         st.markdown("""
         <style>
         .itinerary {
@@ -197,38 +194,38 @@ def main():
                 if not line:
                     continue
                 
-                # Remove asterisks and bullet points at the start of lines
+            
                 line = line.replace('**', '')
                 if line.startswith('* ') or line.startswith('• '):
                     line = line[2:]
                 
-                # Format day headers
+                
                 if line.startswith('Day ') and ':' in line:
                     if in_list:
                         formatted_lines.append('</ul>')
                         in_list = False
                     line = f'<div class="day-title">{line}</div>'
                 
-                # Format time
+                
                 elif any(t in line.lower() for t in ['am:', 'pm:', 'am-', 'pm-']):
                     time = line.split(':')[0]
                     rest = ':'.join(line.split(':')[1:])
                     line = f'<span class="time">{time}</span>{rest}'
                 
-                # Format cost
+                
                 if '(AED' in line:
                     cost_part = line[line.find('('):line.find(')')+1]
                     line = line.replace(cost_part, f'<span class="cost">{cost_part}</span>')
                 
-                # Format transportation info
+                
                 if line.lower().startswith('transportation:'):
                     line = f'<div class="transport-info">{line}</div>'
                 
-                # Format notes
+                
                 elif line.startswith('Note:') or line.startswith('Important:'):
                     line = f'<div class="note">{line}</div>'
                 
-                # Add to list if it's a regular bullet point
+                
                 elif not any(line.startswith(prefix) for prefix in ['Day ', 'Transportation:', 'Note:', 'Important:']):
                     if not in_list:
                         formatted_lines.append('<ul>')
@@ -246,16 +243,16 @@ def main():
             
             return '\n'.join(formatted_lines)
 
-        # Clean up and format the itinerary
+        
         cleaned_itinerary = format_itinerary(st.session_state.itinerary)
         
-        # Convert markdown headers to HTML
+        
         cleaned_itinerary = cleaned_itinerary.replace('# ', '<h1>')
         cleaned_itinerary = cleaned_itinerary.replace('## ', '<h2>')
         
         st.markdown(f'<div class="itinerary">{cleaned_itinerary}</div>', unsafe_allow_html=True)
 
-        # Feedback and refinement section
+        
         st.subheader("Want to refine your itinerary?")
         
         col1, col2 = st.columns(2)
