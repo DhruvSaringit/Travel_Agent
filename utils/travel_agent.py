@@ -28,7 +28,6 @@ class TravelAgent:
         
         genai.configure(api_key=api_key)
         
-        # Set up the model configuration
         generation_config = {
             "temperature": 0.9,
             "top_p": 1,
@@ -121,7 +120,7 @@ class TravelAgent:
           
             info_text = response.text.strip()
             if info_text.startswith('```json'):
-                info_text = info_text[7:-3]  # Remove ```json
+                info_text = info_text[7:-3]  
             destination_data = json.loads(info_text)
             return destination_data
         except:
@@ -193,15 +192,15 @@ class TravelAgent:
     def generate_itinerary(self, preferences: TravelPreferences, feedback: str = "") -> str:
         """Generate a complete, personalized travel itinerary."""
         try:
-            # Gather destination information
+           
             destination_info = self._get_destination_info(preferences.destination)
 
-            # Convert any dicts to strings for safe joining
+            
             def stringify_list(items):
                 result = []
                 for item in items:
                     if isinstance(item, dict):
-                        # Join key: value pairs into one string
+                        
                         result.append("; ".join(f"{k}: {v}" for k, v in item.items()))
                     else:
                         result.append(str(item))
@@ -212,7 +211,7 @@ class TravelAgent:
             restaurants = stringify_list(destination_info.get("restaurants", []))
             events = stringify_list(destination_info.get("events", []))
 
-            # Create the initial prompt for the itinerary
+            
             itinerary_prompt = f"""Create a detailed {preferences.duration}-day travel itinerary for a trip to {preferences.destination}.
     Trip Details:
     - Budget: {preferences.budget}
@@ -242,12 +241,12 @@ class TravelAgent:
 
     Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
 
-            # Generate the itinerary
+            
             response = self.model.generate_content(itinerary_prompt)
             if not response.text:
                 return "Unable to generate itinerary. Please try again."
 
-            # Add header and practical information
+            
             full_itinerary = f"""Personalized Travel Itinerary for {preferences.destination}
     Duration: {preferences.duration} days
     Dates: {preferences.start_date.strftime('%Y-%m-%d')} to {preferences.end_date.strftime('%Y-%m-%d')}
@@ -295,14 +294,14 @@ class TravelAgent:
         initial_prompt = self._create_initial_prompt()
         response = self.model.generate_content(f"{initial_prompt}\n\nUser: {user_input}")
         
-        # Process the response and extract structured preferences
+        
         preferences = self._parse_preferences(response.text)
         
-        # Follow up with clarifying questions if needed
+       
         if preferences.get('needs_clarification'):
             clarification_prompt = self._create_clarification_prompt(preferences)
             clarification = self.model.generate_content(clarification_prompt)
-            # Update preferences with clarified information
+            
             preferences.update(self._parse_preferences(clarification.text))
         
         return preferences
@@ -325,7 +324,7 @@ class TravelAgent:
     def _parse_preferences(self, response: str) -> Dict:
         """Parse the AI response into structured preferences."""
         try:
-            # Simple parsing logic - extract key information using AI
+            
             parse_prompt = f"""Extract key travel preferences from this conversation:
             {response}
             
@@ -340,7 +339,7 @@ class TravelAgent:
             preferences = json.loads(parse_response.text)
             return preferences
         except:
-            # Return default structure if parsing fails
+            
             return {
                 "needs_clarification": True,
                 "dietary_preferences": [],
