@@ -33,32 +33,13 @@ class TravelAgent:
             "top_p": 1,
             "top_k": 1,
             "max_output_tokens": 2048,
+            "response_mime_type": "text/plain",
         }
 
-        safety_settings = [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-            },
-        ]
-
-        
+        # Initialize model (use a stable, widely available Gemini model id)
         self.model = genai.GenerativeModel(
-        "gemini-2.5-flash",
-        generation_config=generation_config,
-        safety_settings=safety_settings
+        "gemini-2.0-flash",
+        generation_config=generation_config
 )
 
         
@@ -110,6 +91,17 @@ class TravelAgent:
                 lines = lines[:-1]
             t = "\n".join(lines).strip()
         return t
+
+    def _generate_plain_text(self, prompt: str) -> str:
+        """Generate content and extract plain text with a simple retry."""
+        last_text = ""
+        for _ in range(2):
+            response = self.model.generate_content(prompt)
+            text = self._response_to_text(response)
+            if text:
+                return text.strip()
+            last_text = text or ""
+        return last_text
 
     def _create_initial_prompt(self) -> str:
         return """You are an expert travel agent AI assistant. Your goal is to help users plan 
@@ -165,8 +157,7 @@ class TravelAgent:
         Each should be a list of strings with brief descriptions."""
 
         try:
-            response = self.model.generate_content(destination_prompt)
-            info_text = self._response_to_text(response)
+            info_text = self._generate_plain_text(destination_prompt)
             info_text = self._strip_code_fences(info_text)
             # Be resilient: try to locate JSON braces if there is extra text
             try:
@@ -231,9 +222,9 @@ class TravelAgent:
     
             
             
-        morning = self._response_to_text(self.model.generate_content(morning_prompt))
-        afternoon = self._response_to_text(self.model.generate_content(afternoon_prompt))
-        evening = self._response_to_text(self.model.generate_content(evening_prompt))
+        morning = self._generate_plain_text(morning_prompt)
+        afternoon = self._generate_plain_text(afternoon_prompt)
+        evening = self._generate_plain_text(evening_prompt)
             
         return f"""Day {day_num}:
     
@@ -298,8 +289,7 @@ class TravelAgent:
     Format the itinerary clearly with day numbers, times, and sections for morning, afternoon, and evening."""
 
             
-            response = self.model.generate_content(itinerary_prompt)
-            itinerary_text = self._response_to_text(response)
+            itinerary_text = self._generate_plain_text(itinerary_prompt)
             if not itinerary_text:
                 return "Unable to generate itinerary. Please try again."
 
@@ -343,22 +333,19 @@ class TravelAgent:
         4. Alternative activities
         """
         
-        response = self.model.generate_content(refinement_prompt)
-        text = self._response_to_text(response)
+        text = self._generate_plain_text(refinement_prompt)
         return text if text else "Unable to refine itinerary. Please try again."
 
     def gather_preferences(self, user_input: str) -> Dict:
         """Gather and refine user preferences through conversation."""
         initial_prompt = self._create_initial_prompt()
-        response = self.model.generate_content(f"{initial_prompt}\n\nUser: {user_input}")
-        resp_text = self._response_to_text(response)
+        resp_text = self._generate_plain_text(f"{initial_prompt}\n\nUser: {user_input}")
         preferences = self._parse_preferences(resp_text)
         
        
         if preferences.get('needs_clarification'):
             clarification_prompt = self._create_clarification_prompt(preferences)
-            clarification = self.model.generate_content(clarification_prompt)
-            clarification_text = self._response_to_text(clarification)
+            clarification_text = self._generate_plain_text(clarification_prompt)
             preferences.update(self._parse_preferences(clarification_text))
         
         return preferences
@@ -392,8 +379,7 @@ class TravelAgent:
             - needs_clarification (boolean)
             """
             
-            parse_response = self.model.generate_content(parse_prompt)
-            parse_text = self._response_to_text(parse_response)
+            parse_text = self._generate_plain_text(parse_prompt)
             parse_text = self._strip_code_fences(parse_text)
             preferences = json.loads(parse_text)
             return preferences
