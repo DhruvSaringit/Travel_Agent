@@ -5,6 +5,10 @@ import google.generativeai as genai
 from pydantic import BaseModel
 import requests
 import json
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationChain
+from langchain.prompts import PromptTemplate
 
 class TravelPreferences(BaseModel):
     budget: str
@@ -313,28 +317,21 @@ class TravelAgent:
             return f"An error occurred while generating the itinerary: {str(e)}"
     
     def refine_suggestions(self, preferences: TravelPreferences, feedback: str) -> str:
-        """Refine the itinerary based on user feedback."""
-        refinement_prompt = f"""
-        Based on the user's feedback: {feedback}
-        Please refine the suggestions for their trip to {preferences.destination}.
-        
-        Consider:
-        1. Original preferences
-        2. New feedback
-        3. Alternative options
-        4. Local seasonal events
-        5. Current weather conditions
-        6. Special requirements
-    
-        Provide specific adjustments to:
-        1. Activity timing
-        2. Restaurant selections
-        3. Transportation options
-        4. Alternative activities
-        """
-        
-        text = self._generate_plain_text(refinement_prompt)
-        return text if text else "Unable to refine itinerary. Please try again."
+        """Now uses LangChain to remember all past feedback"""
+        try:
+            context = f"""
+            Original trip: {preferences.destination} for {preferences.duration} days
+            Budget: {preferences.budget}, Purpose: {preferences.purpose}
+            Interests: {', '.join(preferences.interests or [])}
+            Dietary: {', '.join(preferences.dietary_preferences or [])}
+            Mobility: {preferences.walking_tolerance}
+            User feedback: {feedback}
+            """
+            
+            response = self.conversation.predict(input=context)
+            return response
+        except Exception as e:
+            return f"Sorry, I couldn't refine the itinerary right now: {str(e)}"
 
     def gather_preferences(self, user_input: str) -> Dict:
         """Gather and refine user preferences through conversation."""
